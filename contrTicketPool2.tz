@@ -1,0 +1,25 @@
+storage address;
+parameter (pair nat nat);
+code { UNPAIR;UNPAIR;
+       DIP{ NONE bytes;
+            SWAP;
+            PAIR};
+       SWAP;
+       TICKET;
+       ASSERT_SOME;
+       DIP{ DUP;
+            CONTRACT (list(pair(address)(list(ticket (pair nat (option bytes))))));
+            ASSERT_SOME;
+            AMOUNT;
+            NIL (pair address (list (ticket (pair nat (option bytes)))));
+            NIL (ticket (pair nat (option bytes)))};
+       CONS;
+       SENDER;
+       PAIR;
+       CONS;
+       TRANSFER_TOKENS;
+       NIL operation;
+       SWAP;
+       CONS;
+       PAIR
+     };

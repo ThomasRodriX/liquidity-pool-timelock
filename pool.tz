@@ -1,0 +1,722 @@
+storage (pair
+           (pair#pool de liqu
+              (option (or (ticket (pair nat (option bytes))) (pair address nat (option bytes))))
+              (option (or (ticket (pair nat (option bytes))) (pair address nat (option bytes))))
+              nat)
+           (map#storage users
+              address
+              (pair
+                 nat
+                 (option (ticket (pair nat (option bytes))))
+                 (option (ticket (pair nat (option bytes))))
+                 nat))
+           (pair#fiiiiiile d'attente
+              nat
+              (pair
+                 nat
+                 (pair
+                    (map
+                       nat
+                       (pair
+                          (or
+                             chest
+                             bytes)
+                          (pair
+                             address
+                             timestamp)))
+                    (map
+                       bytes
+                       nat)))));
+parameter (or
+             (or
+                (list %transfer
+                   (pair
+                      (address %from_)
+                      (list %txs
+                         (pair
+                            (address %to_)
+                            (pair
+                               (nat %token_id)
+                               (nat %amount))))))
+                (or
+                   (list %import_ticket
+                      (pair
+                         (address %to_)
+                         (list %tickets
+                            (ticket (pair nat (option bytes))))))
+                   (pair %export_ticket
+                      (list %tickets_to_export
+                         (pair
+                            (address %from_)
+                            (nat %token_id)
+                            (nat %amount)
+                         )
+                      )
+                      (lambda %action
+                         (list (ticket (pair nat (option bytes))))
+                         (list operation)
+                      )
+                   )))
+             (or
+                (or
+                   (pair %unlock bytes chest_key)
+                   (nat %bigexe))
+                (pair %default chest timestamp)));
+code{ UNPAIR;
+      IF_LEFT{ IF_LEFT{ FAIL;}#transfer
+                      { IF_LEFT{ DIP{ UNPAIR 3; SWAP};
+                                 ITER{ UNPAIR;#list pour chaque addresse
+                                       SWAP;#list add map
+                                       DIP { DUP; DUG 2; NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat); SWAP; GET_AND_UPDATE;#on recup et update les ticks
+                                             IF_NONE{ NONE (ticket (pair nat (option bytes)));
+                                                      NONE (ticket (pair nat (option bytes)));
+                                                      PUSH nat 0;}
+                                                    { UNPAIR 4;
+                                                      DIG 3;
+                                                      INT;
+                                                      IFNEQ{ PUSH string "you have at least one timelock in the queue, please unlock them before adding tickets";
+                                                             DIG 5;
+                                                             PAIR;
+                                                             FAILWITH
+                                                           }#si TL>0 fail
+                                                           {}
+                                                    };
+                                           };
+                                       ITER{ READ_TICKET;#pour chaque tick
+                                             UNPAIR 3;
+                                             SELF_ADDRESS;
+                                             DUP 2;
+                                             IFCMPEQ{ DROP;
+                                                      PUSH (pair nat (option bytes)) (Pair 0 None);
+                                                      ASSERT_CMPEQ;
+                                                      SWAP; DROP; ADD}
+                                                    { PAIR; SWAP; DROP;
+                                                      DIG 7; UNPAIR 3;
+                                                      IF_NONE{ DUP 3; DUP; RIGHT (ticket (pair nat (option bytes))); SWAP}
+                                                             { IF_LEFT{ READ_TICKET; UNPAIR 3; PAIR; DIP{ DROP; LEFT (pair address nat (option bytes))}}
+                                                                      { DUP; DIP{ RIGHT (ticket (pair nat (option bytes)))}}};
+                                                      DUP 5;
+                                                      IFCMPEQ{ SOME; PAIR 3; DUG 7; DROP; DIG 2;
+                                                               IF_NONE{ SOME}
+                                                                      { PAIR; JOIN_TICKETS; ASSERT_SOME; SOME};
+                                                               SWAP
+                                                             }
+                                                             { SWAP;
+                                                               IF_NONE{ DUP 3; DUP; RIGHT (ticket (pair nat (option bytes))); SWAP}
+                                                                      { IF_LEFT{ READ_TICKET; UNPAIR 3; PAIR; DIP{ DROP; LEFT (pair address nat (option bytes))}}
+                                                                               { DUP; DIP{ RIGHT (ticket (pair nat (option bytes)))}}};
+                                                               DIP{ SOME; SWAP; SOME; PAIR 3; DUG 7;};
+                                                               DUP 2;
+                                                               IFCMPEQ{ DROP}
+                                                                      { PUSH string "unexpected ticket";
+                                                                        PAIR;
+                                                                        FAILWITH};
+                                                               DIG 3;
+                                                               IF_NONE{ SOME}
+                                                                      { PAIR; JOIN_TICKETS; ASSERT_SOME; SOME};
+                                                               DUG 2}}};
+                                       PUSH nat 0; DUG 3; PAIR 4; SOME; DIG 2; UPDATE};
+                                 SWAP; PAIR 3;
+                                 NIL operation; PAIR}#import
+                               { UNPAIR;
+                                 NIL (ticket (pair nat (option bytes)));
+                                 SWAP;
+                                 ITER{ UNPAIR 3;
+                                       DUP;
+                                       SENDER;
+                                       IFCMPEQ{ }
+                                              { PUSH string "sender != address";
+                                                FAILWITH};
+                                       DIP 5{ UNPAIR 6};
+                                       DIG 6;
+                                       NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat); DUP 3; GET_AND_UPDATE;
+                                       ASSERT_SOME;
+                                       UNPAIR 4;
+                                       DUP 7;
+                                       PUSH nat 1;
+                                       IFCMPEQ{ DIP{ ASSERT_SOME; READ_TICKET; UNPAIR 3; DROP 2;
+                                                     DUP 8; DUP; DUP 3;
+                                                     IFCMPEQ{ DROP 2; NONE (ticket (pair nat (option bytes))); DIP{ DIG 7; SWAP; CONS; DUG 6};}
+                                                            { DUP; DIG 2; SUB; ISNAT;
+                                                              IF_SOME{ }
+                                                                     { PUSH string "you don't have enough tokens";
+                                                                       FAILWITH};
+                                                              PAIR; SWAP;
+                                                              SPLIT_TICKET; IF_NONE{ PUSH string "amount must be >0"; FAILWITH}{}; UNPAIR; DIP{ DIG 7; SWAP; CONS; DUG 6}; SOME
+                                                            };
+                                                   };
+                                              }
+                                              { DUP 7; PUSH nat 2;
+                                                IFCMPEQ{ DIP{ DIP{ ASSERT_SOME; READ_TICKET; UNPAIR 3; DROP 2; DUP 7; DUP; DUP 3;
+                                                                   IFCMPEQ{ DROP 2; NONE (ticket (pair nat (option bytes))); DIP{ DIG 6; SWAP; CONS; DUG 5};}
+                                                                          { DUP; DIG 2; SUB; ISNAT;
+                                                                            IF_SOME{ }
+                                                                                   { PUSH string "you don't have enough tokens";
+                                                                                     FAILWITH};
+                                                                            PAIR; SWAP;
+                                                                            SPLIT_TICKET; IF_NONE{ PUSH string "amount must be >0"; FAILWITH}{};UNPAIR; DIP{ DIG 6; SWAP; CONS; DUG 5}; SOME;
+                                                                            }
+                                                                          }}
+                                                       }
+                                                       { DUP 7; PUSH nat 0;
+                                                         IFCMPEQ{ DUP 8; DUP 5; SUB; ISNAT;
+                                                                  IF_SOME{ }
+                                                                         { PUSH string "you don't have enough shares";
+                                                                           FAILWITH};
+                                                                  DUP; DIP 5{ DROP}; DUG 4; PUSH (pair nat (option bytes)) (Pair 0 None); TICKET;
+                                                                  IF_NONE{ PUSH string "amount must be >0"; FAILWITH}{};
+                                                                  DIG 9; SWAP; CONS; DUG 8
+                                                                }
+                                                                { PUSH string "invalid int, must be 0, 1 or 2";
+                                                                  FAILWITH};
+                                                         };
+                                              };
+                                       PAIR 4; SOME; DUP 3; UPDATE; DUG 6; DIP 5{ PAIR 6}; DROP 3
+                                     };
+                                 PAIR; PUSH address "KT1WcPTEYJi4cAEF7LhLeTAhsinuEg6ZZVCQ"; CONTRACT (pair(list(ticket (pair nat (option bytes))))(lambda(list(ticket (pair nat (option bytes))))(list operation))); ASSERT_SOME;
+                                 AMOUNT; DIG 2; TRANSFER_TOKENS; NIL operation; SWAP; CONS; PAIR
+                               }}}#EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXPOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORTTTTTTTTTT
+
+             { IF_LEFT{ IF_LEFT{ UNPAIR;#on trouve dabord le nat correspondant au hash
+                                 DIG 2;
+                                 UNPAIR;
+                                 UNPAIR;
+                                 DIG 2;
+                                 UNPAIR;
+                                 SWAP;
+                                 UNPAIR 4;
+                                 DIG 3;
+                                 DUP;
+                                 DIG 8;
+                                 DUP;
+                                 DUG 10;
+                                 GET;#mtn on retrouve timlok dans la file grace au nat
+                                 DIG 4;
+                                 DUP;
+                                 DIG 2;
+                                 IF_NONE{PUSH nat 1; FAILWITH}{};
+                                 DUP;
+                                 DUP;
+                                 DUG 12;
+                                 DUG 12;
+                                 GET;
+                                 IF_NONE{PUSH nat 2; FAILWITH}{};
+                                 UNPAIR;
+                                 SWAP;
+                                 UNPAIR;
+                                 SWAP;
+                                 DUP;
+                                 PUSH int 15;
+                                 ADD;
+                                 DUP;
+                                 NOW;
+                                 IFCMPGT{ }
+                                        { PUSH string "too soon to unlock timelock";
+                                          FAILWITH};
+                                 PUSH int 30;
+                                 ADD;
+                                 NOW;
+                                 IFCMPLT{ SWAP;
+                                          DUP;
+                                          SENDER;
+                                          IFCMPEQ{ SWAP;}
+                                                 { PUSH string "you are not the sender of this timelock, you can't unlock it yet";
+                                                   FAILWITH};}#sender unlock
+                                        { };#tout le monde unlock
+                                 DIG 2;
+                                 IF_LEFT{ PUSH nat 1000000;
+                                          SWAP;
+                                          DIG 11;
+                                          OPEN_CHEST;
+                                          IF_SOME{ }
+                                                 { PUSH string "wrong key";
+                                                   FAILWITH};
+                                          PUSH (lambda bytes bytes) {DUP; DUP; SIZE; PUSH nat 2; SWAP; SUB; ABS; PUSH nat 2; SLICE; IF_NONE{PUSH string "bad encoding "; PAIR; FAILWITH}{}; PUSH bytes 0x; SWAP; DUP 2; DUP 2; CMPNEQ; LOOP{DUP; DUP; SIZE; PUSH nat 2; SWAP; SUB; DUP; NEQ; DUP; DUG 5; IF{ABS; PUSH nat 2; SLICE; IF_NONE{DIG 3;PUSH string "bad encoding "; PAIR; FAILWITH}{}}{DROP}; SWAP; DUP; PUSH nat 1; PUSH nat 1; SLICE; ASSERT_SOME; NAT; SWAP; PUSH nat 1; PUSH nat 0; SLICE; ASSERT_SOME; NAT; DIP{DUP; PUSH nat 80; IFCMPGT{PUSH nat 48}{PUSH nat 87}; SWAP; SUB}; DUP; PUSH nat 80; IFCMPGT{PUSH nat 48}{PUSH nat 87}; SWAP; SUB; PUSH nat 16; MUL; ADD; ABS; BYTES; DUP; PUSH bytes 0x; IFCMPEQ{DROP; PUSH bytes 0x00}{}; DUG 2; DIP{CONCAT}; DIG 2}; DROP; SWAP; DROP};
+                                          SWAP;
+                                          EXEC;
+                                          DIG 4;
+                                          NONE nat;
+                                          DIG 11;
+                                          UPDATE;
+                                          DUG 4;
+                                          DIP {SWAP};
+                                          DIP 5{DUP};
+                                          DIG 5;
+                                          DIG 12;
+                                          IFCMPEQ{ DIP 2{ DROP};
+                                                   DIG 2;
+                                                   NONE (pair (or chest bytes) address timestamp);
+                                                   DIP 10{ DUP};
+                                                   DIG 10;
+                                                   UPDATE;
+                                                   DUG 3;
+                                                   PAIR;
+                                                   LEFT unit;
+                                                 }
+                                                 { RIGHT chest;
+                                                   PAIR 3;
+                                                   SOME;
+                                                   DIG 8;
+                                                   DUP;
+                                                   DUG 9;
+                                                   UPDATE;
+                                                   UNIT;
+                                                   RIGHT (pair bytes address);
+                                                   DIP{ SWAP}};
+                                          DIP 8
+                                              { DROP;
+                                                PUSH nat 10}; # nbr de transactions à exec au max
+                                        }
+                                        { PUSH string "timelock already unlocked, too late";
+                                          FAILWITH};
+                                 }#unlock
+                               { SWAP;
+                                 UNPAIR 6;
+                                 DIG 4;
+                                 DUP 4;
+                                 NONE (pair (or chest bytes) address timestamp); SWAP; GET_AND_UPDATE;
+                                 IF_SOME{ }
+                                        { PUSH string "Plus de transactions possibles, attend";
+                                          FAILWITH};
+                                 UNPAIR 3;
+                                 IF_LEFT{ PUSH string "Impossible de faire un bigexe si plus vieux est un timelock, veuillez le deverouiller au prealable";
+                                          FAILWITH}
+                                        { PAIR;
+                                          LEFT unit;
+                                          DIP{ DIG 6};
+                                          DIP 4{DIG 3;DIG 3}
+                                        };
+                                 DIP 2{DROP};
+                                 DIP 5{SWAP; DIP{UNPAIR}};
+                                 DIP 3{PUSH nat 1; ADD}
+                               };#bigEXE
+                        LOOP_LEFT{ UNPAIR;
+                                   UNPACK(or (pair nat nat nat) (or (or (pair nat nat) (pair nat nat)) nat  ));#SWAP DEPOT RETRAIT
+                                   IF_SOME{ IF_LEFT{ UNPAIR 3;
+                                                     DUP;
+                                                     PUSH nat 1;
+                                                     IFCMPEQ{ DROP; DIG 7;
+                                                              NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat); DUP 5;GET_AND_UPDATE;#user info
+                                                              DIP{ DUG 7};
+                                                              IF_SOME{ }
+                                                                     { PUSH string "assertion failure";
+                                                                       FAILWITH};
+                                                              UNPAIR 4;
+                                                              DIP 12
+                                                                  { ASSERT_SOME;
+                                                                    IF_LEFT{ READ_TICKET;
+                                                                             DIP{SOME}}
+                                                                           { PUSH nat 0;
+                                                                             SWAP;
+                                                                             UNPAIR;
+                                                                             PAIR 3;
+                                                                             NONE (ticket (pair nat (option bytes)));
+                                                                             SWAP};
+                                                                    GET 4;
+                                                                    DIP{ DIP{ UNPAIR; ASSERT_SOME;
+                                                                              IF_LEFT{ READ_TICKET;
+                                                                                       DIP{SOME}}
+                                                                                     { PUSH nat 0;
+                                                                                       SWAP;
+                                                                                       UNPAIR;
+                                                                                       PAIR 3;
+                                                                                       NONE (ticket (pair nat (option bytes)));
+                                                                                       SWAP};
+                                                                              GET 4};
+                                                                         SWAP}};
+                                                              DUP 13; DUP 15; MUL;#on calc K
+                                                              DUP 6; PUSH nat 996; MUL; PUSH nat 1000; SWAP;
+                                                              EDIV; ASSERT_SOME; CAR; DUP 15; ADD; SWAP;
+                                                              EDIV; ASSERT_SOME; CAR; DUP 15; SUB; ISNAT; ASSERT_SOME;#Tb'(frais pris en compte 0.4pourc)
+                                                              DIP 2 { ASSERT_SOME; READ_TICKET; GET 4};
+                                                              DIP 4 { ASSERT_SOME; READ_TICKET; GET 4;};
+                                                              DIP 3{ SWAP;};#Tb',NbTL,Tau,Tbu
+                                                              #DIP 7{ DUP; DUG 9;}; DIP 15{ADD};#ajout de Tad à Tat
+                                                              DUP 3; DUP 9;
+                                                              IFCMPLE{ }
+                                                                     { PUSH string "You don't have enough tokens to swap this value";
+                                                                       FAILWITH};
+                                                              DUP; DUP 10;
+                                                              IFCMPLE{ }
+                                                                     { PUSH string "Slippage limit reached";
+                                                                       FAILWITH};
+                                                              DUP 8; DUP 4; SUB; ISNAT; ASSERT_SOME;#Tau-Tad
+                                                              DUP 9;#Tau
+                                                              SWAP; PAIR; DIG 5; SPLIT_TICKET; ASSERT_SOME; UNPAIR; DUG 5; DIG 18; #on split, on remet Tau et on prent Tat pour join
+                                                              IF_SOME{ PAIR; JOIN_TICKETS; DUG 17}
+                                                                     { SOME; DUG 17};
+                                                              DUP; DUP 18; SUB; ISNAT; ASSERT_SOME;#Tbt-Tb'
+                                                              PAIR; DIG 18; ASSERT_SOME; SPLIT_TICKET; ASSERT_SOME; UNPAIR; DUG 18; #on split, on remet Tbt et on prent Tb' pour join
+                                                              DIG 5; PAIR; JOIN_TICKETS; ASSERT_SOME; DUG 4; DIP{DROP 2}; PUSH nat 1; SUB; ISNAT; ASSERT_SOME; DIP{ SOME; DIP{ SOME}}; PAIR 4; SOME; DIG 3; DIP 2{ DIG 6};
+                                                              UPDATE; DUG 6;#remet la map update
+                                                              DROP 2;
+                                                              DIP 5{DROP 2; ASSERT_SOME; LEFT (pair address nat (option bytes));SOME; DIP{ LEFT (pair address nat (option bytes));SOME; PAIR}};
+                                                               }
+                                                            { PUSH nat 2;
+                                                              PUSH string "not implemented in the draft"; FAILWITH};
+                                                     }#Swap
+                                                   { IF_LEFT{ DIG 6;
+                                                              NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat);
+                                                              DUP 4;
+                                                              GET_AND_UPDATE;#on prend les info du user
+                                                              IF_SOME{ }
+                                                                     { PUSH string "assertion failure";
+                                                                       FAILWITH};
+                                                              UNPAIR 4;
+                                                              PUSH nat 1; SUB; ISNAT; ASSERT_SOME;
+                                                              DIP{ ASSERT_SOME};
+                                                              DIP 2{ ASSERT_SOME};
+                                                              DIP 12{UNPAIR};#Tbt et Pt unpair
+                                                              DIG 5;
+                                                              IF_LEFT{ UNPAIR;#aetb'
+                                                                       DIP 3{READ_TICKET; GET 4; DIP{DIP{READ_TICKET; GET 4};SWAP}};#TadTbdnbtlTauTbu
+                                                                       DIP 2{ DUG 2};#TadTbdTauTbuNbTL
+                                                                       DUP;
+                                                                       DUP 4;#Tau
+                                                                       IFCMPGE{ }
+                                                                              { PUSH string "You don't have enough tokens to deposit this value";
+                                                                                FAILWITH};
+                                                                       DIP{ DUP; DUP 4;
+                                                                            IFCMPGE{ }
+                                                                                   { PUSH string "You don't have enough tokens to deposit this value";
+                                                                                     FAILWITH};};#ok vérif assez de balance
+                                                                       DIP 14
+                                                                           { ASSERT_SOME;
+                                                                             IF_LEFT{ READ_TICKET;
+                                                                                      DIP{SOME}}
+                                                                                    { PUSH nat 0;
+                                                                                      SWAP;
+                                                                                      UNPAIR;
+                                                                                      PAIR 3;
+                                                                                      NONE (ticket (pair nat (option bytes)));
+                                                                                      SWAP};
+                                                                             GET 4;
+                                                                             DIP{ DIP{ ASSERT_SOME;
+                                                                                       IF_LEFT{ READ_TICKET;
+                                                                                                DIP{SOME}}
+                                                                                              { PUSH nat 0;
+                                                                                                SWAP;
+                                                                                                UNPAIR;
+                                                                                                PAIR 3;
+                                                                                                NONE (ticket (pair nat (option bytes)));
+                                                                                                SWAP};
+                                                                                       GET 4};
+                                                                                  SWAP}};
+                                                                       DUP;#Tad
+                                                                       DUP 16;#Tat
+                                                                       MUL;
+                                                                       DUP 17;#Tbt
+                                                                       EDIV;
+                                                                       IF_SOME{ CAR;
+                                                                                DUP;#Tb'dTb'dTadTbdTauTbuNbTL
+                                                                                DUP 4;#Tbd
+                                                                                IFCMPGE{ }
+                                                                                       { PUSH string "Above max value (slippage)";
+                                                                                         FAILWITH};#on a Tad et Tbd à déposer, reste à les déposer et à avoir les parts
+                                                                                DUP 20;#Pt-Tb'd-Tad-Tbd-Tau-Tbu-NbTL
+                                                                                DUP 3;#Tad-Pt-Tb'd-Tad-Tbd-Tau-Tbu-NbTL
+                                                                                MUL;
+                                                                                DUP 17;#Tat
+                                                                                SWAP;
+                                                                                EDIV;#Punouv
+                                                                                ASSERT_SOME;
+                                                                                CAR;#Punouv
+                                                                                DUP;
+                                                                                DIG 21;
+                                                                                ADD;
+                                                                                DUG 20;
+                                                                                DIG 9;
+                                                                                ADD;#Putot
+                                                                                DUG 8;#Tb'dTadTbdTauTbuNbTL
+                                                                                DUP 2;#Tad Tb'dTadTbdTauTbuNbTL
+                                                                                DUP 5;#Tau
+                                                                                SUB; ISNAT; ASSERT_SOME;#Taunouv Tb'dTadTbdTauTbuNbTL
+                                                                                DUP 3; SWAP; PAIR; DIG 7; SPLIT_TICKET; ASSERT_SOME; UNPAIR; DUG 7;#on split, on a le nouv tick user
+                                                                                DIG 18; ASSERT_SOME; PAIR; JOIN_TICKETS; DUG 17; #on join pour créer nouv tick tot???????????????????DUG BIZARRRRRE
+                                                                                DUP 3; DUP 6; SUB; ISNAT; ASSERT_SOME;
+                                                                                DUP 4; SWAP; PAIR; DIG 8; SPLIT_TICKET; ASSERT_SOME; UNPAIR; DUG 8;
+                                                                                DIG 19; ASSERT_SOME; PAIR; JOIN_TICKETS; DUG 18;
+                                                                                DROP 5; DIP{ SOME; DIP{ SOME}};
+                                                                                PAIR 4; SOME; DIG 2; UPDATE; DIP 5{ DROP 2};
+                                                                                DUG 4; DIP 5{ ASSERT_SOME; LEFT (pair address nat (option bytes)); SOME};
+                                                                                DIP 6{ ASSERT_SOME; LEFT (pair address nat (option bytes));SOME; PAIR};
+                                                                              }
+                                                                              { DUP; DUP 3;
+                                                                                IFCMPGT{ PUSH nat 1000000; DUP 3; MUL;}
+                                                                                       { PUSH nat 1000000; DUP 2; MUL;};
+                                                                                DIP 8{ DROP; DIP 10{ DROP}}; DUP; DUG 8;
+                                                                                DUG 18; DUP; DIG 3; SUB; ISNAT;#Tau-Tad
+                                                                                IF_NONE{ PUSH string "dont have enough of token 1"; FAILWITH}
+                                                                                       { };
+                                                                                PAIR; DIG 4; SPLIT_TICKET;
+                                                                                IF_NONE{ PUSH string "token 1 amount must be >0 (1)"; FAILWITH}
+                                                                                       { };
+                                                                                UNPAIR; DUG 4; DIP 15{ DROP 2}; LEFT (pair address nat (option bytes)); SOME; DUG 14;
+                                                                                DUP; DUP 3; SUB; ISNAT;
+                                                                                IF_NONE{ PUSH string "dont have enough of token 2 (1)"; FAILWITH}
+                                                                                       { };
+                                                                                PAIR; DIG 4; SPLIT_TICKET;
+                                                                                IF_NONE{ PUSH string "token 2 amount must be >0 (1)"; FAILWITH}
+                                                                                       { };
+                                                                                UNPAIR; DUG 4; LEFT (pair address nat (option bytes)); SOME; DUG 14;
+                                                                                DROP; DIP{ SOME; DIP{ SOME}}; PAIR 4; SOME; DIG 2;
+                                                                                UPDATE;
+                                                                                DIP 5{DROP 2};
+                                                                                DUG 4; DIP 6{ PAIR}
+                                                                                 };
+                                                                     }
+
+                                                                     { UNPAIR;#a'etb !ne pas utiliser ce point d'entrée, n'est pas sûr!
+                                                                       DIP 3{READ_TICKET; GET 4; DIP{DIP{READ_TICKET; GET 4};SWAP}};#TadTbdnbtlTauTbu
+                                                                       DIP 2{ DUG 2};#TadTbdTauTbuNbTL
+                                                                       DUP;
+                                                                       DUP 4;#Tau
+                                                                       IFCMPGE{ }
+                                                                              { PUSH string "You don't have enough tokens to deposit this value";
+                                                                                FAILWITH};
+                                                                       DIP{ DUP; DUP 4;
+                                                                            IFCMPGE{ }
+                                                                                   { PUSH string "You don't have enough tokens to deposit this value";
+                                                                                     FAILWITH};};#ok vérif assez de balance
+                                                                       DIP 14
+                                                                           { ASSERT_SOME;
+                                                                             IF_LEFT{ READ_TICKET;
+                                                                                      DIP{SOME}}
+                                                                                    { PUSH nat 0;
+                                                                                      SWAP;
+                                                                                      UNPAIR;
+                                                                                      PAIR 3;
+                                                                                      NONE (ticket (pair nat (option bytes)));
+                                                                                      SWAP};
+                                                                             GET 4;
+                                                                             DIP{ DIP{ ASSERT_SOME;
+                                                                                       IF_LEFT{ READ_TICKET;
+                                                                                                DIP{SOME}}
+                                                                                              { PUSH nat 0;
+                                                                                                SWAP;
+                                                                                                UNPAIR;
+                                                                                                PAIR 3;
+                                                                                                NONE (ticket (pair nat (option bytes)));
+                                                                                                SWAP};
+                                                                                       GET 4};
+                                                                                  SWAP}};
+                                                                       DUP 2;#Tbd
+                                                                       DUP 17;#Tbt
+                                                                       MUL;
+                                                                       DUP 16;#Tat
+                                                                       EDIV;
+                                                                       IF_SOME{ CAR;
+                                                                                DUP;#Ta'dTa'dTadTbdTauTbuNbTL
+                                                                                DUP 3;#Tad
+                                                                                IFCMPGE{ }
+                                                                                       { PUSH string "Above max value (slippage)";
+                                                                                         FAILWITH};#on a Tad et Tbd à déposer, reste à les déposer et à avoir les parts
+                                                                                DUP 20;#Pt-Ta'd-Tad-Tbd-Tau-Tbu-NbTL
+                                                                                DUP 4;#Tbd-Pt-Ta'd-Tad-Tbd-Tau-Tbu-NbTL
+                                                                                MUL;
+                                                                                DUP 18;#Tat
+                                                                                SWAP;
+                                                                                EDIV;#Punouv
+                                                                                ASSERT_SOME;
+                                                                                CAR;#Punouv
+                                                                                DUP;
+                                                                                DIG 21;
+                                                                                ADD;
+                                                                                DUG 20;
+                                                                                DIG 9;
+                                                                                ADD;#Putot
+                                                                                DUG 8;#Ta'dTadTbdTauTbuNbTL
+                                                                                DUP;#Ta'd Ta'dTadTbdTauTbuNbTL
+                                                                                DUP 5;#Tau
+                                                                                SUB; ISNAT; ASSERT_SOME;#Taunouv Ta'dTadTbdTauTbuNbTL
+                                                                                DUP 2; SWAP; PAIR; DIG 7; SPLIT_TICKET; ASSERT_SOME; UNPAIR; DUG 7;#on split, on a le nouv tick user
+                                                                                DIG 18; ASSERT_SOME; PAIR; JOIN_TICKETS; DUG 17; #on join pour créer nouv tick tot
+                                                                                DUP 3; DUP 6; SUB; ISNAT; ASSERT_SOME;#Tbunouv Ta'dTadTbdTauTbuNbTL
+                                                                                DUP 4; SWAP; PAIR; DIG 8; SPLIT_TICKET; ASSERT_SOME; UNPAIR; DUG 8;
+                                                                                DIG 19; ASSERT_SOME; PAIR; JOIN_TICKETS; DUG 18;
+                                                                                DROP 5; DIP{ SOME; DIP{ SOME}};
+                                                                                PAIR 4; SOME; DIG 2; UPDATE; DIP 3{ DROP 2};
+                                                                                DUG 4; DIP 5{ ASSERT_SOME; LEFT (pair address nat (option bytes)); SOME};
+                                                                                DIP 6{ ASSERT_SOME; LEFT (pair address nat (option bytes));SOME; PAIR};
+                                                                              }
+                                                                              { DUP; DUP 3;
+                                                                                IFCMPGT{ PUSH nat 1000000; DUP 3; MUL;}
+                                                                                       { PUSH nat 1000000; DUP 2; MUL;};
+                                                                                DIP 8{ DROP; DIP 10{ DROP}}; DUP; DUG 8;
+                                                                                DUG 18; DUP 3; SUB; ISNAT;#Tau-Tad
+                                                                                IF_NONE{ PUSH string "dont have enough of token 1"; FAILWITH}
+                                                                                       { };
+                                                                                PAIR; DIG 4; SPLIT_TICKET;
+                                                                                IF_NONE{ PUSH string "token 1 amount must be >0"; FAILWITH}
+                                                                                       { };
+                                                                                UNPAIR; DUG 4; DIP 15{ DROP 2}; LEFT (pair address nat (option bytes)); SOME; DUG 14;
+                                                                                DUP; DUP 3; SUB; ISNAT;
+                                                                                IF_NONE{ PUSH string "dont have enough of token 2"; FAILWITH}
+                                                                                       { };
+                                                                                PAIR; DIG 4; SPLIT_TICKET;
+                                                                                IF_NONE{ PUSH string "token 2 amount must be >0"; FAILWITH}
+                                                                                       { };
+                                                                                UNPAIR; DUG 4; LEFT (pair address nat (option bytes)); SOME; DUG 14;
+                                                                                DROP; DIP{ SOME; DIP{ SOME}}; PAIR 4; SOME; DIG 2;
+                                                                                UPDATE;
+                                                                                DIP 5{ DROP 2};
+                                                                                DUG 4; DIP 6{ PAIR}
+                                                                                 };
+                                                                       };
+                                                              }#Dépot______________________________________________
+                                                            { DIG 6;
+                                                              NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat); DUP 4; GET_AND_UPDATE;#user info
+                                                              DIP{ DUG 6};
+                                                              IF_SOME{ }
+                                                                     { PUSH string "assertion failure";
+                                                                       FAILWITH};
+                                                              UNPAIR 4;
+                                                              DIP 11
+                                                                  { ASSERT_SOME;
+                                                                    IF_LEFT{ READ_TICKET;
+                                                                             DIP{SOME}}
+                                                                           { PUSH nat 0;
+                                                                             SWAP;
+                                                                             UNPAIR;
+                                                                             PAIR 3;
+                                                                             NONE (ticket (pair nat (option bytes)));
+                                                                             SWAP};
+                                                                    GET 4;
+                                                                    DIP{ DIP{ UNPAIR; ASSERT_SOME;
+                                                                              IF_LEFT{ READ_TICKET;
+                                                                                       DIP{SOME}}
+                                                                                     { PUSH nat 0;
+                                                                                       SWAP;
+                                                                                       UNPAIR;
+                                                                                       PAIR 3;
+                                                                                       NONE (ticket (pair nat (option bytes)));
+                                                                                       SWAP};
+                                                                              GET 4};
+                                                                         SWAP}};
+                                                              DIP{ ASSERT_SOME; READ_TICKET; GET 4};
+                                                              DIP 3 { ASSERT_SOME; READ_TICKET; GET 4;};
+                                                              DIP 2{ SWAP;};#NbtlTauTbu
+                                                              DIP 5{ DUP 2; SWAP; SUB; ISNAT; ASSERT_SOME};
+                                                              DUP 7; DUP 15; MUL; DUP 19; SWAP; EDIV; ASSERT_SOME; CAR;#TarNbtlTauTbu
+                                                              DUP; DUP 4; SUB; ISNAT;#Tau-Tar
+                                                              ASSERT_SOME; DUP; PUSH nat 0;
+                                                              IFCMPEQ{ DROP 2; DIG 3; NONE (ticket (pair nat (option bytes)))}
+                                                                     { PAIR; DIG 4;
+                                                                       SPLIT_TICKET; ASSERT_SOME; UNPAIR; SOME};
+                                                              DUG 4; DIG 16; ASSERT_SOME; PAIR; JOIN_TICKETS; ASSERT_SOME; DUG 15;#Tatnouv
+                                                              DUP 7; DUP 16; MUL; DUP 19; SWAP; EDIV; ASSERT_SOME; CAR;#TbrNbtlTauTbu
+                                                              DUP ;DUP 5; SUB; ISNAT;#Tbu-Tbr
+                                                              ASSERT_SOME; DUP; PUSH nat 0;
+                                                              IFCMPEQ{ DROP 2; DIG 4; NONE (ticket (pair nat (option bytes)))}
+                                                                     { PAIR; DIG 5;
+                                                                       SPLIT_TICKET; ASSERT_SOME; UNPAIR; SOME};
+                                                              DUG 5; DIG 17; ASSERT_SOME; PAIR; JOIN_TICKETS; ASSERT_SOME; DUG 16;#Tbtnouv
+                                                              DIG 17; DIG 7; ADD; DUG 16; DROP 2; PAIR 4; SOME; SWAP; DIP 2{ DIG 4};
+                                                              UPDATE; DUG 4;
+                                                              DIP 5{ DROP 2;LEFT (pair address nat (option bytes)); SOME; DIP{LEFT (pair address nat (option bytes)); SOME; PAIR}};
+                                                            } #Retrait
+                                                   }
+                                          }
+                                          {DROP}; # bytes illisibles, rien a faire
+                                   DIP 2 { PUSH nat 1; ADD};
+                                   DIG 7;
+                                   INT;
+                                   DUP;
+                                   PUSH int -1;
+                                   ADD;
+                                   ABS;
+                                   DUG 8;
+                                   EQ;
+                                   IF{ UNIT;
+                                       RIGHT (pair bytes address)}
+                                     { DUP 3;
+                                       DIG 2;
+                                       SWAP;
+                                       DIP{ DUP};
+                                       GET;
+                                       IF_SOME{ UNPAIR;
+                                                IF_LEFT{ DROP 2;
+                                                         UNIT;
+                                                         RIGHT (pair bytes address)}
+                                                       { DIP{ CAR};
+                                                         DIG 2;
+                                                         DIG 4;
+                                                         DUP;
+                                                         PUSH nat 1;
+                                                         ADD;
+                                                         DUG 5;
+                                                         NONE (pair (or chest bytes) (pair address timestamp));
+                                                         SWAP;
+                                                         UPDATE;
+                                                         DUG 2;
+                                                         PAIR;
+                                                         LEFT unit
+                                                       }}
+                                              { UNIT;
+                                                RIGHT (pair bytes address)};
+                                       DIP{ SWAP}};
+                                     };
+                        DIP 6{ PAIR; DIP{ DROP}}; DROP; DUG 3; DUG 3; DIP 2{ SWAP}; PAIR 4; DIG 2; DIP{ SWAP};
+                        }#unlocks
+                      { UNPAIR;
+                        NOW;
+                        DIG 2;
+                        IFCMPGT{ }
+                               { PUSH string "wrong timestamp";
+                                 FAILWITH};
+                        DIP {UNPAIR};
+                        DIG 2;
+                        UNPAIR;
+                        NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat);
+                        SENDER;
+                        GET_AND_UPDATE;
+                        IF_SOME{ }
+                               { PUSH string "you must import tickets before puting a timelock";
+                                 FAILWITH
+                               };
+                        UNPAIR;
+                        PUSH nat 1;
+                        ADD;
+                        PAIR;
+                        SOME;
+                        SENDER;
+                        UPDATE;
+                        SWAP;
+                        UNPAIR 4;
+                        DIG 2;
+                        DIG 5;
+                        DUP;
+                        LEFT bytes;
+                        SWAP;
+                        PACK;
+                        SHA256;
+                        DUG 2;
+                        NOW;
+                        SENDER;
+                        DIG 2;
+                        PAIR 3;
+                        SOME;
+                        DIP 4{ DUP};
+                        DIG 4;
+                        UPDATE;
+                        DIG 4;
+                        DIG 4;
+                        DUP;
+                        DUG 5;
+                        SOME;
+                        DIG 3;
+                        UPDATE;
+                        DIP{ DUG 2};
+                        DUG 3;
+                        SWAP;
+                        PUSH nat 1;
+                        ADD;
+                        SWAP;
+                        PAIR 4;
+                        SWAP;
+                        DIG 2;
+                      };
+               NIL operation;
+               PAIR 4
+             }; #default
+    }
