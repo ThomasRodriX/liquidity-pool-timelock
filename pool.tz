@@ -10,7 +10,7 @@ storage (pair
                  (option (ticket (pair nat (option bytes))))
                  (option (ticket (pair nat (option bytes))))
                  nat))
-           (pair#fiiiiiile d'attente
+           (pair#file d'attente
               nat
               (pair
                  nat
@@ -175,7 +175,7 @@ code{ UNPAIR;
                                      };
                                  PAIR; PUSH address "KT1WcPTEYJi4cAEF7LhLeTAhsinuEg6ZZVCQ"; CONTRACT (pair(list(ticket (pair nat (option bytes))))(lambda(list(ticket (pair nat (option bytes))))(list operation))); ASSERT_SOME;
                                  AMOUNT; DIG 2; TRANSFER_TOKENS; NIL operation; SWAP; CONS; PAIR
-                               }}}#EXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXPOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORTTTTTTTTTT
+                               }}}#EXPORT
 
              { IF_LEFT{ IF_LEFT{ UNPAIR;#on trouve dabord le nat correspondant au hash
                                  DIG 2;
@@ -563,7 +563,7 @@ code{ UNPAIR;
                                                                                 DUG 4; DIP 6{ PAIR}
                                                                                  };
                                                                        };
-                                                              }#Dépot______________________________________________
+                                                              }#Dépot
                                                             { DIG 6;
                                                               NONE (pair nat (option(ticket (pair nat (option bytes)))) (option (ticket (pair nat (option bytes)))) nat); DUP 4; GET_AND_UPDATE;#user info
                                                               DIP{ DUG 6};
