@@ -161,6 +161,65 @@ As shown in the image above, the queue looks like this:
 
 ### Contract entrypoints
 >The Liquidity Pool will operate like a pool on Uniswap V3. It adopts the product model, i.e. x*y=k, where x and y are the balances of the two tokens in the swap pair. For each swap, transaction fees will be 0.4%.
+The contract has several entrypoints:
+* **transfer** Transfer tickets from standard FA2.1 to someone in the pool.
+```
+(list %transfer
+  (pair
+    (address %from_)
+    (list %txs
+      (pair
+        (address %to_)
+        (pair
+          (nat %token_id)
+          (nat %amount))))))
+```
+[Documentation](https://tzip.tezosagora.org/proposal/tzip-12/#transfer)
+* **import_ticket** To deposit tickets in the contract.
+```
+(list %import_ticket
+    (pair
+        (option %to_ address)
+        (list %tickets
+            (ticket (pair nat (option bytes))))))
+```
+[Documentation](https://hackmd.io/eOQdbL1MRlW62M6l6Tjp1Q?view#import_ticket)
+* **export_ticket** To export tickets outside the contract.
+```
+(pair %export_ticket
+    (list %tickets_to_export
+        (pair
+           (address %from_)
+           (nat %token_id)
+           (nat %amount)
+        ))
+    (lambda %action
+        (list (ticket (pair nat (option bytes))))
+        (list operation)
+    ))
+```
+[Documentation](https://codimd.nomadic-labs.com/c8zQouKcTzKrhlmUQnhlAw?view#export_ticket)
+>⛔ fa2.1 entry points are blocked as long as one of the users concerned (and the recipient of a transfer) has at least one timelock in the queue.
+* **default** To deposit a Timelock
+```
+(pair chest timestamp)
+```
+>💡 Timestamp is the expiry date of the transaction. It is used to avoid frontrun in the event of mempool bottlenecks, and should generally be set before the minimum timelock release time.
+* **unlock** To unlock a Timelock
+This last entry point allows you to unlock your timelock, or decrypt the timelocks of other users if they haven't unlocked it within the allotted time.
+```
+(pair bytes chest_key)
+```
+>💡 ```Bytes```: correspond to the timelock hash, allowing it to be found on the chain without having to search for its nat in the queue.
+>    ```chest_key```: Key to unlock the timelock, held by the timelock initiator or decrypted by others.
 
+It is during the creation of a Timelock that the data is encrypted, and it is also here that the user chooses whether to swap, deposit or withdraw liquidity from the contract into the pool.
+Before performing a swap or providing liquidity in the pool, the assets must first be deposited in the contract. The fa2.1 entry points are blocked as long as one of the users involved (and the recipient of a transfer) has at least one timelock in the queue.
+Furthermore, an additional function to be implemented on this contract is that the depositor of a timelock should submit a deposit, which he will get back if he unlocks it himself, but which will be given to the decryptor if he fails to do so.
+
+**Problems that Timelocks can cause :**
+
+Timelocks can cause problems on the fact that a user can revoke an order by adding or removing tokens from the contract just before execution, which is why I've blocked this option if a timelock is in the queue.
+There is also the risk of unexpected slippage, which also exists in non-timelocked pools, but which is more worrying here, since it's not visible until the transaction is executed. I therefore coded a slippage so that the user can manage this risk himself.
 
 However, even if a Timelock cannot be parallelized by a CPU, an FPGA or ASIC could decrypt a Timelock 100 or even 1000 times faster than a cpu. So in a real liquidity pool, the owner of the contract would have to put a decryptable Timelock on a long length in case someone came to decrypt the Timelocks to frontrun the transactions. In this way, the owner himself would need an FPGA to unlock the Timelocks the Timelocks of those who forgot or didn't want to do it.
