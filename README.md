@@ -71,7 +71,7 @@ This is a specific form of front running: an attacker places a buy transaction j
 
 ## General solutions
 
-💡 There is no single solution to front-running problems on all platforms. On the contrary, various anti-front-running approaches exist on different projects, depending on the scenario, but are not 100% effective.
+>💡 There is no single solution to front-running problems on all platforms. On the contrary, various anti-front-running approaches exist on different projects, depending on the scenario, but are not 100% effective.
 
 ### Ways to avoid front-running on the trader's side
 
@@ -110,3 +110,57 @@ Time-lock encryption allows a message to be encrypted in such a way that it can 
 4. Finally, the contract can calculate a function of all data decrypted or decrypted.
 
 Thus, using a time-lock in a liquidity pool, it would be impossible to predict which token, and in what quantity, will be exchanged: front-running would therefore become impossible.
+
+## Introducing the Timelocks liquidity pool
+### Contract storage
+
+* First of all, there's the storage of the liquidity pool itself, with the two tokens A and B in the form of FA2.1 tickets (a Tezos specificity that you can find [here](https://hackmd.io/eOQdbL1MRlW62M6l6Tjp1Q?)), as well as a natural representing the total shares of the pool.
+```
+(pair 
+    (option (or (ticket (pair nat (option bytes))) (pair address nat (option bytes))))#tokenA
+    (option (or (ticket (pair nat (option bytes))) (pair address nat (option bytes))))#tokenB
+    nat)
+```
+* Then there's user storage. Each user is recognized by his tz1 address. They are assigned the number of timelocks they have in the queue, the 2 tickets and the number of pool shares they own.
+```
+(big_map
+    address
+    (pair
+        nat
+        (option (ticket (pair nat (option bytes))))
+        (option (ticket (pair nat (option bytes))))
+        nat
+                ))
+```
+* Finally, there's the timelock queue: the user first sends his timelock, which arrives in the queue. After a certain time, the timelock becomes unblockable for the user who submitted it. Then, if he doesn't unlock it, anyone can decrypt it. Lastly, once it is unlocked, if it is valid, the transaction will be processed on the blockchain.
+```
+(pair
+    nat#oldest timelock
+    (pair
+        nat#place of the next timelock
+        (pair 
+            (big_map
+                nat#position of the timelock
+                (pair
+                    (or
+                        chest#is either a chest(timelock) or bytes, if a timelock is unlocked but the one before it is not
+                        bytes)
+                    (pair
+                        address
+                        timestamp)))
+            (big_map
+                bytes
+                nat))))
+```
+*The last big_map associates the hash in bytes of a timelock with its position in nat to find it more easily in the queue.*
+![TL1](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/a018e1cf-620c-4a4d-88a7-0522a4cd1179 )
+As shown in the image above, the queue looks like this:
+1. Users publish their timelock
+2. The timelock sender can unlock it
+3. The sender has not unlocked his timelock, so anyone can unlock it and his transaction will go through no matter what.
+
+### Contract entrypoints
+>The Liquidity Pool will operate like a pool on Uniswap V3. It adopts the product model, i.e. x*y=k, where x and y are the balances of the two tokens in the swap pair. For each swap, transaction fees will be 0.4%.
+
+
+However, even if a Timelock cannot be parallelized by a CPU, an FPGA or ASIC could decrypt a Timelock 100 or even 1000 times faster than a cpu. So in a real liquidity pool, the owner of the contract would have to put a decryptable Timelock on a long length in case someone came to decrypt the Timelocks to frontrun the transactions. In this way, the owner himself would need an FPGA to unlock the Timelocks the Timelocks of those who forgot or didn't want to do it.
