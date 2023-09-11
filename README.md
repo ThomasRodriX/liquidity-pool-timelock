@@ -1,6 +1,6 @@
 # Liquidity Pool with Timelocks
 ## But first, what's a liquidity pool?
-### Principe général
+### General principle
 
 Liquidity pools are essential components of the decentralized finance ecosystem, or DeFi, which operates on the blockchain. They are essential for the operation of decentralized exchanges (DEX), which are an alternative to traditional, centralized exchanges.
 
@@ -79,7 +79,7 @@ This is a specific form of front running: an attacker places a buy transaction j
 
 * **Keep maximum slippage low:** Slippage is when a trading order executes at a different price from the one seen at the time the trade is confirmed. Since the crypto market is volatile, prices can change between the time the trade is confirmed and the time the trading platform executes it. Consequently, if the trader sets his maximum slippage at a low level, around 0.5% to 2%, this may repel front runners.
 
-* ** Overpaying for gas:** By paying too little for gas, trades stay in the queue longer, which also gives front-runners more time to exploit trades and make profits. Conversely, overpaying for gas will reduce the risk of a front-runner.
+* **Overpaying for gas:** By paying too little for gas, trades stay in the queue longer, which also gives front-runners more time to exploit trades and make profits. Conversely, overpaying for gas will reduce the risk of a front-runner.
 
 * **Placing a low-value order:** Front runners have to pay gas charges twice, on entering and exiting the market, and recover the amount paid as a trading fee. Their profits don't start until they've recouped their expenses. So most of the time, trading with amounts below $1,000 is unprofitable for them.
 
@@ -223,3 +223,35 @@ Timelocks can cause problems on the fact that a user can revoke an order by addi
 There is also the risk of unexpected slippage, which also exists in non-timelocked pools, but which is more worrying here, since it's not visible until the transaction is executed. I therefore coded a slippage so that the user can manage this risk himself.
 
 However, even if a Timelock cannot be parallelized by a CPU, an FPGA or ASIC could decrypt a Timelock 100 or even 1000 times faster than a cpu. So in a real liquidity pool, the owner of the contract would have to put a decryptable Timelock on a long length in case someone came to decrypt the Timelocks to frontrun the transactions. In this way, the owner himself would need an FPGA to unlock the Timelocks the Timelocks of those who forgot or didn't want to do it.
+
+## The smart-contract created and the final test
+I created a [test contract](https://github.com/ThomasRodriX/liquidity-pool-timelock/blob/main/pool.tz) for this liquidity pool to see if the model is valid. You can find the contract on this gitlab. Note that not all parts of the entry points are completed, and some will fail the contract, but each entry point is functional.
+
+**Test protocol :**
+Here's a test of all the pool's functionalities. You'll find the code associated with the test in [this .sh file](https://github.com/ThomasRodriX/liquidity-pool-timelock/blob/main/pool.sh).
+
+1. **Import** The first step is to create the two FA2.1 tickets in the contract using [another contract](https://github.com/ThomasRodriX/liquidity-pool-timelock/blob/main/contrTicketPool2.tz), and then import them. Then a user sends 101 type 1 tickets and 102 type 2 tickets to the liquidity pool contract. This is the storage obtained, as agreed:
+   
+![z1](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/6c52d848-4cb5-468a-81d0-5962bd6651b3)
+
+2. **Depositing** The second step is to create a timelock whose data is to deposit a maximum of 8 type 1 tickets and 7 type 2 tickets. Then the user sends it, unlocks it and we get result:
+   
+![z2](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/579292d1-e1b6-4ba9-a8f8-1f375c62c968)
+
+3. **Import** Another user (let's call him user2) also imports 201 type 1 tickets and 202 type 2 tickets into the liquidity pool contract.
+![z3](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/d084bc1f-abd3-4531-94a2-5e388ee18550)
+
+4. **Depot** User2 also creates a timelock whose data is the deposit of a maximum of 80 type 1 and 70 type 2 tickets, sends it to the contract, unlocks it and the result is :
+![z4](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/b3983c46-cab5-489b-be4c-21f3c4935e5e)
+
+5. **Swap** User2 wants to swap 10 type 1 tickets for at least 7 type 2 tickets (at least because he sets a minimum in case of big movements from whales, this corresponds to a slippage), he creates a timelock, sends it, unlocks it and gets :
+![z5](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/b86f96de-3736-4c09-8d8d-7a52edd04dff)
+
+6. **Withdrawal** User2 withdraws all his shares from the pool (i.e. type 1 and 2 tickets are retrieved from the contract), he also does this using a timelock.
+![z6](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/1c119bcf-3998-4f38-9618-88a2f8fc2580)
+
+7. **Export** The last test is the ticket export, here the lambda doesn't export to a wallet because I didn't have a multiwallet available, but the entrypoint drops the tickets if the export works.
+![z8](https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/d9e657d0-118e-4322-99f0-b4d731dd8195)
+
+
+As you can see, the liquidity pool works in all 3 cases, and could therefore be improved for use on the Tezos mainnet. Timelocks will soon be active again, so if the need arises among Tezos users, it's possible to create such a liquidity pool. such a liquidity pool.
