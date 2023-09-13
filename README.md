@@ -258,4 +258,4 @@ Here's a test of all the pool's functionalities. You'll find the code associated
 <img src="https://github.com/ThomasRodriX/liquidity-pool-timelock/assets/113580716/d9e657d0-118e-4322-99f0-b4d731dd8195" width="700" />
 
 
-As you can see, the liquidity pool works in all 3 cases, and could therefore be improved for use on the Tezos mainnet. Timelocks will soon be active again, so if the need arises among Tezos users, it's possible to create such a liquidity pool. such a liquidity pool.
+As you can see, the liquidity pool works in all 3 cases, and could therefore be improved for use on the Tezos mainnet. Timelocks will soon be active again, so if the need arises among Tezos users, it's possible to create such a liquidity pool.
